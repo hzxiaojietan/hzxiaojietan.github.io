@@ -162,6 +162,113 @@ var themeMenus = {};
         
           <section id="main">
   
+    <article id="post-Android日常总结"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="clearfix post-1016 post type-post status-publish format-standard has-post-thumbnail hentry category-template-2 category-uncategorized tag-codex tag-edge-case tag-featured-image tag-image tag-template">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2018/04/09/Android日常总结/">Android日常总结</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	Posted on <a href="/2018/04/09/Android日常总结/" class="article-date">
+	  <time datetime="2018-04-09T08:22:44.000Z" itemprop="datePublished">April 9, 2018</time>
+	</a>
+
+      
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ol>
+<li>安卓中使用SurfaceView进行拍照图片，通过mCamera.setParameters(params); // 将参数设置给相机   对相机设置参数，发现params.setPreviewFrameRate(5);//预览帧率 这个参数设置，在部分手机有问题，打印setParameters failed，比如小米6就有问题，具体参考：<a href="http://blog.chinaunix.net/xmlrpc.php?r=blog/article&amp;uid=22896670&amp;id=3304099文档。" target="_blank" rel="noopener">http://blog.chinaunix.net/xmlrpc.php?r=blog/article&amp;uid=22896670&amp;id=3304099文档。</a></li>
+</ol>
+<p>最后解决方案：可以不设置  params.setPreviewFrameRate(5);这个参数。</p>
+<p>2.在安卓6.0（API23）版本后，APP已无法自动申请权限，需要手动写代码弹出询问框，询问用户，如果不想写代码实现，可以把targetSdkVersion设置为22。</p>
+<p>3.三星手机拍照图片旋转问题：拍照成功获取图片时需要先设置下图片的角度后再进行图片旋转，方法如下：<br>/**</p>
+<ul>
+<li>将图片的旋转角度置为相应的角度  ，此方法可以解决某些机型拍照后图像，出现了旋转情况<br>*</li>
+<li>@Title: setPictureDegreeZero</li>
+<li>@param path</li>
+<li>@return void</li>
+<li>@date 2012-12-10 上午10:54:46<br>*/<br>public static void setPictureDegreeZero(String path,String orientation) {<br> try {<pre><code>ExifInterface exifInterface = new ExifInterface(path);
+// 修正图片的旋转角度，设置其不旋转。这里也可以设置其旋转的角度，可以传值过去，
+// 例如旋转90度，传值ExifInterface.ORIENTATION_ROTATE_90，需要将这个值转换为String类型的
+exifInterface.setAttribute(ExifInterface.TAG_ORIENTATION, orientation);
+exifInterface.saveAttributes();
+</code></pre> } catch (IOException e) {<pre><code>// TODO Auto-generated catch block
+e.printStackTrace();
+</code></pre> }<br>}</li>
+</ul>
+<p>private String getOrienation() {<br>    switch (mCurrentOrienation){<br>        case 0:<br>            return “6”; // ExifInterface.ORIENTATION_ROTATE_90<br>        case 90:<br>            return “3”; // ExifInterface.ORIENTATION_ROTATE_180<br>        case 180:<br>            return “8”; // ExifInterface.ORIENTATION_ROTATE_270<br>        case 270:<br>            return “no”;    // 不旋转<br>        default:<br>            return “no”;<br>    }<br>}</p>
+<p>4.当一个按钮有两种状态，绿色可点击，灰色不可点，可以通过设置Button的Background的drawable来实现，<br>&lt;?xml version=”1.0” encoding=”utf-8”?&gt;</p>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+<pre><code>&lt;item android:state_enabled=&quot;false&quot;&gt;
+    &lt;shape&gt;
+        &lt;solid android:color=&quot;@color/color2&quot;/&gt;
+        &lt;corners android:radius=&quot;3dp&quot;/&gt;
+        &lt;padding android:left=&quot;0dip&quot; android:top=&quot;0dip&quot; android:right=&quot;0dip&quot; android:bottom=&quot;0dip&quot; /&gt;
+    &lt;/shape&gt;
+&lt;/item&gt;
+
+&lt;item android:state_enabled=&quot;true&quot; android:state_pressed=&quot;false&quot;&gt;
+    &lt;shape&gt;
+        &lt;solid android:color=&quot;#0099FF&quot;/&gt;
+        &lt;corners android:radius=&quot;3dp&quot;/&gt;
+        &lt;padding android:left=&quot;0dip&quot; android:top=&quot;0dip&quot; android:right=&quot;0dip&quot; android:bottom=&quot;0dip&quot; /&gt;
+    &lt;/shape&gt;
+&lt;/item&gt;
+
+&lt;item android:state_pressed=&quot;true&quot; android:state_enabled=&quot;true&quot;&gt;
+    &lt;shape&gt;
+        &lt;solid android:color=&quot;#1875d1&quot;/&gt;
+        &lt;corners android:radius=&quot;3dp&quot;/&gt;
+        &lt;padding android:left=&quot;0dip&quot; android:top=&quot;0dip&quot; android:right=&quot;0dip&quot; android:bottom=&quot;0dip&quot; /&gt;
+    &lt;/shape&gt;
+&lt;/item&gt;
+</code></pre><p></p></selector><br>// 如下为灰色不可点击状态<br>mBtnRepeal.setEnabled(false);<br>mBtnRepeal.setText(“已撤销”);<p></p>
+<ol>
+<li><p>在SD卡创建文件时，有的手机可以自动创建好文件和路径（三星），但有的手机无法自动创建文件和路径（小米）所以需要代码手动创建文件：<br>if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){  //检测sd卡是否存在<br> String filePath = Constant.APP_CACHE_BASE_DIR + File.separator ;<br> File path = new File(filePath);<br> if (!path.exists()) {</p>
+<pre><code>AppLog.e(&quot;create path sucess!=&quot;+path.mkdirs());// 路径创建
+</code></pre><p> }</p>
+<p> File sdFile = new File(filePath,fileName);<br> if(!sdFile.exists()){</p>
+<pre><code>try {
+    AppLog.e(&quot;create file sucess!=&quot;+sdFile.createNewFile());// 文件创建
+} catch (IOException e) {
+    e.printStackTrace();
+}
+</code></pre><p> }<br>}</p>
+</li>
+</ol>
+<p>6.在安卓开发中，如果想屏幕常亮，可以在Activity中设置FLAG_KEEP_SCREEN_ON  flag参数。也可以在布局文件中设置：android:keepScreenOn=”true”，如下所示</p>
+<relativelayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:keepscreenon="true"><br>…<br></relativelayout>
+
+<p>7.ThreadLocal 是线程内部的数据存储类，每个线程中都会保存一个 ThreadLocal.ThreadLocalMap threadLocals = null;，ThreadLocalMap 是 ThreadLocal 的静态内部类，里面保存了一个 private Entry[] table 数组，这个数组就是用来保存 ThreadLocal 中的值。通过这种方式，就能让我们在多个线程中互不干扰地存储和修改数据。</p>
+<p>8.如果两个或者更多的线程共享一个对象，多个线程在这个共享对象上更新变量，就有可能发生race conditions。<br>想象一下，如果线程A读一个共享对象的变量count到它的CPU缓存中。再想象一下，线程B也做了同样的事情，但是往一个不同的CPU缓存中。现在线程A将count加1，线程B也做了同样的事情。现在count已经被增在了两个，每个CPU缓存中一次。<br>如果这些增加操作被顺序的执行，变量count应该被增加两次，然后原值+2被写回到主存中去。<br>然而，两次增加都是在没有适当的同步下并发执行的。无论是线程A还是线程B将count修改后的版本写回到主存中取，修改后的值仅会被原值大1，尽管增加了两次。<br>解决这个问题可以使用Java同步块。一个同步块可以保证在同一时刻仅有一个线程可以进入代码的临界区。同步块还可以保证代码块中所有被访问的变量将会从主存中读入，当线程退出同步代码块时，所有被更新的变量都会被刷新回主存中去，不管这个变量是否被声明为volatile。</p>
+
+      
+    </div>
+    <footer class="entry-meta entry-footer">
+      
+      
+      
+            
+      
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+  
     <article id="post-第一篇文章"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="clearfix post-1016 post type-post status-publish format-standard has-post-thumbnail hentry category-template-2 category-uncategorized tag-codex tag-edge-case tag-featured-image tag-image tag-template">
     
@@ -401,6 +508,18 @@ var themeMenus = {};
               <div class="widget-entry-summary" style="margin: 0;">
             
 
+              <h6 style="margin: 0;"><a href="/2018/04/09/Android日常总结/">Android日常总结</a></h6>
+              <span>April 9, 2018</span>
+            </div>
+
+          </li>
+        
+          <li class="clearfix">
+
+            
+              <div class="widget-entry-summary" style="margin: 0;">
+            
+
               <h6 style="margin: 0;"><a href="/2018/01/12/第一篇文章/">第一篇文章</a></h6>
               <span>January 12, 2018</span>
             </div>
@@ -437,7 +556,7 @@ var themeMenus = {};
     <h3 class="widget-title">Archiv</h3>
 
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a><span class="archive-list-count">2</span></li></ul>
     </div>
   </div>
 
